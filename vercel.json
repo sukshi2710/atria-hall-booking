@@ -9,6 +9,10 @@
       "destination": "/frontend/admin.html"
     },
     {
+      "source": "/",
+      "destination": "/frontend/index.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/frontend/$1"
     }
