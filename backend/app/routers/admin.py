@@ -1,0 +1,76 @@
+import os
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import FileResponse
+from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy.orm import Session
+from typing import List
+from app.database import get_db
+from app.models import Booking, Admin
+from app.schemas import BookingOut, BookingCreate
+from app.auth import verify_password, create_access_token, get_current_admin
+from app.conflict_engine import check_hall_clash
+from app.excel_service import append_booking_to_excel, initialize_excel_ledger, EXCEL_FILE_PATH
+
+router = APIRouter(prefix="/api/v1/admin", tags=["Admin"])
+
+@router.post("/login")
+def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    admin = db.query(Admin).filter(Admin.username == form_data.username).first()
+    if not admin or not verify_password(form_data.password, admin.password_hash):
+        raise HTTPException(status_code=400, detail="Incorrect username or password")
+    
+    access_token = create_access_token(data={"sub": admin.username})
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@router.get("/bookings", response_model=List[BookingOut])
+def list_all_bookings(admin: Admin = Depends(get_current_admin), db: Session = Depends(get_db)):
+    return db.query(Booking).order_by(Booking.start_datetime.desc()).all()
+
+@router.get("/export-excel")
+def export_excel_ledger(admin: Admin = Depends(get_current_admin)):
+    """Allows the in-charge/admin to download the updated .xlsx ledger."""
+    initialize_excel_ledger()
+    if not os.path.exists(EXCEL_FILE_PATH):
+        raise HTTPException(status_code=404, detail="Excel ledger file not found")
+        
+    return FileResponse(
+        path=EXCEL_FILE_PATH,
+        filename="college_hall_bookings_ledger.xlsx",
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
+@router.put("/bookings/{booking_id}", response_model=BookingOut)
+def update_booking(
+    booking_id: int, 
+    update_data: BookingCreate, 
+    admin: Admin = Depends(get_current_admin), 
+    db: Session = Depends(get_db)
+):
+    booking = db.query(Booking).filter(Booking.id == booking_id).first()
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+
+    clash = check_hall_clash(
+        db, update_data.venue, update_data.start_datetime, update_data.end_datetime, exclude_booking_id=booking_id
+    )
+    if clash:
+        raise HTTPException(status_code=409, detail=f"Cannot reschedule: Clashes with {clash.event_details}")
+
+    for key, value in update_data.model_dump().items():
+        setattr(booking, key, value)
+        
+    db.commit()
+    db.refresh(booking)
+    append_booking_to_excel(booking)
+    return booking
+
+@router.delete("/bookings/{booking_id}")
+def cancel_booking(booking_id: int, admin: Admin = Depends(get_current_admin), db: Session = Depends(get_db)):
+    booking = db.query(Booking).filter(Booking.id == booking_id).first()
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    booking.status = "CANCELLED"
+    db.commit()
+    append_booking_to_excel(booking)
+    return {"message": "Booking successfully cancelled and slot freed"}
