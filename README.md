@@ -1,17 +1,17 @@
-# 🏛️ Campus Venue Reservation System
+# Campus Venue Reservation System
 
 An institutional venue reservation and scheduling management platform engineered with a high-performance **FastAPI** backend and a responsive **Glassmorphism UI**. Designed to streamline campus auditorium and seminar hall bookings through automated schedule collision detection, instant SMTP email dispatch, and role-based administrative control.
 
 ---
 
-## 🌟 Key Features
+## Key Features
 
-* **🛡️ Collision Detection Engine**: Automatically audits requested time slots to prevent overlapping reservations and double-bookings.
-* **📧 Automated SMTP Mail Service**: Dispatches HTML booking confirmations with reference IDs to faculty and alerts upon slot cancellation.
-* **🔒 JWT-Secured Admin Console**: Token-authenticated management panel with live ledger monitoring and venue slot cancellation controls.
-* **📊 Dynamic Excel Ledger Export**: Generates and downloads the official `.xlsx` reservation ledger directly from database records.
-* **🎨 Frosted Glassmorphism UI**: Custom interface with institutional branding, NAAC A++ accreditation badges, and an intuitive 12-hour AM/PM date-time picker.
-* **⚡ Serverless Deployment Ready**: Structured for deployment on Vercel with dedicated API routing rewrites.
+* ** Collision Detection Engine**: Automatically audits requested time slots to prevent overlapping reservations and double-bookings.
+* ** Automated SMTP Mail Service**: Dispatches HTML booking confirmations with reference IDs to faculty and alerts upon slot cancellation.
+* ** JWT-Secured Admin Console**: Token-authenticated management panel with live ledger monitoring and venue slot cancellation controls.
+* ** Dynamic Excel Ledger Export**: Generates and downloads the official `.xlsx` reservation ledger directly from database records.
+* ** Frosted Glassmorphism UI**: Custom interface with institutional branding, NAAC A++ accreditation badges, and an intuitive 12-hour AM/PM date-time picker.
+* ** Serverless Deployment Ready**: Structured for deployment on Vercel with dedicated API routing rewrites.
 
 ---
 
@@ -30,7 +30,7 @@ An institutional venue reservation and scheduling management platform engineered
 
 ---
 
-## 📂 Project Structure
+##  Project Structure
 
 ```text
 ├── api/
@@ -113,7 +113,7 @@ uvicorn app.main:app --reload --port 8080
 
 ---
 
-## 🌐 Deployment to Vercel
+##  Deployment to Vercel
 
 1. **Push to GitHub**: Push the repository code ensuring `.env` and `venv/` are excluded via `.gitignore`.
 2. **Import to Vercel**: Connect your GitHub repository to Vercel.
