@@ -408,9 +408,17 @@
         
         <div class="navbar-actions">
             <img src="naac-logo.png" alt="NAAC A++ Accredited" class="naac-badge" title="NAAC A++ Accredited" onerror="this.style.display='none'">
-            <a href="index.html" class="nav-btn">&larr; Public Portal</a>
-            <button id="logoutBtn" class="nav-btn hidden" onclick="logout()" class="logout-btn" style="background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.4);">Logout</button>
-        </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+  <!-- Public Portal Return Button -->
+  <a href="/" style="padding: 8px 16px; border-radius: 8px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: #cbd5e1; text-decoration: none; font-size: 13px; font-weight: 500;">
+    ← Public Portal
+  </a>
+
+  <!-- Admin Logout Button -->
+  <button onclick="logout()" style="padding: 8px 18px; border-radius: 8px; background: #dc2626; border: 1px solid rgba(255, 255, 255, 0.2); color: #ffffff; font-size: 13px; font-weight: 600; cursor: pointer;">
+    Logout
+  </button>
+</div></div>
     </header>
 
     <!-- Admin Authentication Modal -->
@@ -610,6 +618,10 @@ async function fetchBookings() {
 function logout() {
     localStorage.removeItem("admin_token");
     showLoginModal();
+    // Clear table rows immediately on logout
+    const tbody = document.getElementById("bookingsTableBody");
+    if (tbody) tbody.innerHTML = `<tr><td colspan="7" class="empty-state">Please log in to view reservations.</td></tr>`;
+    document.getElementById("bookingCount").innerText = "0 Records";
 }
 </script>
 </body>
