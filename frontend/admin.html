@@ -106,25 +106,6 @@
             backdrop-filter: blur(6px);
         }
 
-        .nav-btn {
-            background: rgba(255, 255, 255, 0.1);
-            color: #ffffff;
-            border: 1px solid var(--glass-border);
-            padding: 8px 16px;
-            border-radius: var(--radius-md);
-            text-decoration: none;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            backdrop-filter: blur(8px);
-            transition: all 0.2s ease;
-        }
-
-        .nav-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-1px);
-        }
-
         /* Glass Login Modal */
         #loginModal {
             position: fixed;
@@ -409,39 +390,36 @@
         <div class="navbar-actions">
             <img src="naac-logo.png" alt="NAAC A++ Accredited" class="naac-badge" title="NAAC A++ Accredited" onerror="this.style.display='none'">
             <div style="display: flex; align-items: center; gap: 12px;">
-  <!-- Public Portal Return Button -->
-  <a href="/" style="padding: 8px 16px; border-radius: 8px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: #cbd5e1; text-decoration: none; font-size: 13px; font-weight: 500;">
-    ← Public Portal
-  </a>
-
-  <!-- Admin Logout Button -->
-  <button onclick="logout()" style="padding: 8px 18px; border-radius: 8px; background: #dc2626; border: 1px solid rgba(255, 255, 255, 0.2); color: #ffffff; font-size: 13px; font-weight: 600; cursor: pointer;">
-    Logout
-  </button>
-</div></div>
+                <a href="/" style="padding: 8px 16px; border-radius: 8px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: #cbd5e1; text-decoration: none; font-size: 13px; font-weight: 500;">
+                    ← Public Portal
+                </a>
+                <button onclick="logout()" style="padding: 8px 18px; border-radius: 8px; background: #dc2626; border: 1px solid rgba(255, 255, 255, 0.2); color: #ffffff; font-size: 13px; font-weight: 600; cursor: pointer;">
+                    Logout
+                </button>
+            </div>
+        </div>
     </header>
 
-    <!-- Admin Authentication Modal -->
-   <!-- Admin Authentication Modal Overlay -->
-<div id="loginModal" style="display: none; position: fixed; inset: 0; background: rgba(10, 15, 29, 0.85); backdrop-filter: blur(12px); z-index: 9999; align-items: center; justify-content: center;">
-  <div style="background: rgba(30, 41, 59, 0.85); border: 1px solid rgba(255, 255, 255, 0.15); padding: 32px; border-radius: 16px; width: 90%; max-width: 380px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); text-align: center; color: white;">
-    <h2 style="margin-bottom: 8px; font-size: 20px; font-weight: 700;">Admin Authentication</h2>
-    <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Enter institutional credentials to manage reservations.</p>
-    
-    <form id="adminLoginForm" onsubmit="handleLogin(event)">
-      <div style="margin-bottom: 14px; text-align: left;">
-        <label style="font-size: 12px; color: #cbd5e1; display: block; margin-bottom: 6px;">Username</label>
-        <input type="text" id="adminUser" required placeholder="admin" style="width: 100%; box-sizing: border-box; padding: 10px 14px; background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; outline: none;">
-      </div>
-      <div style="margin-bottom: 20px; text-align: left;">
-        <label style="font-size: 12px; color: #cbd5e1; display: block; margin-bottom: 6px;">Password</label>
-        <input type="password" id="adminPass" required placeholder="••••••••" style="width: 100%; box-sizing: border-box; padding: 10px 14px; background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; outline: none;">
-      </div>
-      <p id="loginError" style="color: #f87171; font-size: 12px; display: none; margin-bottom: 12px;"></p>
-      <button type="submit" id="loginBtn" style="width: 100%; padding: 11px; background: #2563eb; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Sign In</button>
-    </form>
-  </div>
-</div>
+    <!-- Admin Authentication Modal Overlay -->
+    <div id="loginModal" style="display: none;">
+        <div class="login-card">
+            <h2>Admin Authentication</h2>
+            <p>Enter institutional credentials to manage reservations.</p>
+            
+            <form id="adminLoginForm" onsubmit="handleLogin(event)">
+                <div class="input-group">
+                    <label>Username</label>
+                    <input type="text" id="adminUser" required placeholder="admin">
+                </div>
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" id="adminPass" required placeholder="••••••••">
+                </div>
+                <p id="loginError" style="color: #f87171; font-size: 12px; display: none; margin-bottom: 12px;"></p>
+                <button type="submit" id="loginBtn" class="btn-submit">Sign In</button>
+            </form>
+        </div>
+    </div>
 
     <!-- Main Dashboard -->
     <main id="adminPanel" class="main-container hidden">
@@ -453,7 +431,7 @@
                 </div>
                 <div class="header-controls">
                     <span id="bookingCount" class="record-badge">0 Records</span>
-                    <button id="downloadExcelBtn" class="action-btn-excel">📊 Download Excel Ledger (.xlsx)</button>
+                    <button id="downloadExcelBtn" onclick="downloadExcel()" class="action-btn-excel">📊 Download Excel Ledger (.xlsx)</button>
                 </div>
             </div>
 
@@ -481,148 +459,218 @@
     </main>
 
     <script>
-const API_BASE = "/api/v1/admin";
+        const API_BASE = "/api/v1/admin";
 
-function showLoginModal() {
-    const modal = document.getElementById("loginModal");
-    if (modal) {
-        modal.style.display = "flex";
-    }
-}
-
-function hideLoginModal() {
-    const modal = document.getElementById("loginModal");
-    if (modal) {
-        modal.style.display = "none";
-    }
-}
-
-// Check credentials upon opening page
-document.addEventListener("DOMContentLoaded", async () => {
-    const token = localStorage.getItem("admin_token");
-    if (!token) {
-        showLoginModal();
-    } else {
-        await fetchBookings();
-    }
-});
-
-// Login submission
-async function handleLogin(e) {
-    e.preventDefault();
-    const username = document.getElementById("adminUser").value.trim();
-    const password = document.getElementById("adminPass").value.trim();
-    const errEl = document.getElementById("loginError");
-    const btn = document.getElementById("loginBtn");
-
-    errEl.style.display = "none";
-    btn.innerText = "Verifying...";
-    btn.disabled = true;
-
-    const formData = new URLSearchParams();
-    formData.append("username", username);
-    formData.append("password", password);
-
-    try {
-        const response = await fetch(`${API_BASE}/login`, {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: formData
-        });
-
-        if (!response.ok) {
-            throw new Error("Invalid username or password");
+        function showLoginModal() {
+            const modal = document.getElementById("loginModal");
+            const panel = document.getElementById("adminPanel");
+            if (modal) modal.style.display = "flex";
+            if (panel) panel.classList.add("hidden");
         }
 
-        const data = await response.json();
-        localStorage.setItem("admin_token", data.access_token);
-        hideLoginModal();
-        await fetchBookings();
-    } catch (err) {
-        errEl.innerText = err.message || "Login failed";
-        errEl.style.display = "block";
-    } finally {
-        btn.innerText = "Sign In";
-        btn.disabled = false;
-    }
-}
+        function hideLoginModal() {
+            const modal = document.getElementById("loginModal");
+            const panel = document.getElementById("adminPanel");
+            if (modal) modal.style.display = "none";
+            if (panel) panel.classList.remove("hidden");
+        }
 
-// Fetch bookings with automatic 401 unauthenticated catcher
-async function fetchBookings() {
-    const token = localStorage.getItem("admin_token");
-    if (!token) {
-        showLoginModal();
-        return;
-    }
+        function formatTo12Hour(isoString) {
+            if (!isoString) return "-";
+            const date = new Date(isoString);
+            if (isNaN(date.getTime())) return isoString;
+            return date.toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            });
+        }
 
-    try {
-        const res = await fetch(`${API_BASE}/bookings`, {
-            headers: { "Authorization": `Bearer ${token}` }
+        document.addEventListener("DOMContentLoaded", async () => {
+            const token = localStorage.getItem("admin_token");
+            if (!token) {
+                showLoginModal();
+            } else {
+                await fetchBookings();
+            }
         });
 
-        // If the server rejects the token, force show the login modal
-        if (res.status === 401 || res.status === 403) {
+        async function handleLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById("adminUser").value.trim();
+            const password = document.getElementById("adminPass").value.trim();
+            const errEl = document.getElementById("loginError");
+            const btn = document.getElementById("loginBtn");
+
+            errEl.style.display = "none";
+            btn.innerText = "Verifying...";
+            btn.disabled = true;
+
+            const formData = new URLSearchParams();
+            formData.append("username", username);
+            formData.append("password", password);
+
+            try {
+                const response = await fetch(`${API_BASE}/login`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error("Invalid username or password");
+                }
+
+                const data = await response.json();
+                localStorage.setItem("admin_token", data.access_token);
+                hideLoginModal();
+                await fetchBookings();
+            } catch (err) {
+                errEl.innerText = err.message || "Login failed";
+                errEl.style.display = "block";
+            } finally {
+                btn.innerText = "Sign In";
+                btn.disabled = false;
+            }
+        }
+
+        async function fetchBookings() {
+            const token = localStorage.getItem("admin_token");
+            if (!token) {
+                showLoginModal();
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/bookings`, {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+
+                if (res.status === 401 || res.status === 403) {
+                    localStorage.removeItem("admin_token");
+                    showLoginModal();
+                    return;
+                }
+
+                if (!res.ok) {
+                    throw new Error(`Server returned ${res.status}`);
+                }
+
+                const data = await res.json();
+                hideLoginModal();
+
+                const countEl = document.getElementById("bookingCount");
+                if (countEl) countEl.innerText = `${data.length} Records`;
+
+                const tbody = document.getElementById("bookingsTableBody");
+                if (!tbody) return;
+
+                if (data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="empty-state">No venue reservations recorded yet.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = data.map(b => {
+                    const isConfirmed = b.status === "CONFIRMED";
+                    return `
+                        <tr>
+                            <td><span class="venue-badge">${b.venue}</span></td>
+                            <td>
+                                <strong>${b.faculty_name}</strong><br>
+                                <span style="font-size: 11px; color: #94a3b8;">${b.department} | ${b.email}</span>
+                            </td>
+                            <td>${b.event_details}</td>
+                            <td>${formatTo12Hour(b.start_datetime)}</td>
+                            <td>${formatTo12Hour(b.end_datetime)}</td>
+                            <td>
+                                <span class="status-badge ${isConfirmed ? 'status-confirmed' : 'status-cancelled'}">
+                                    ${b.status}
+                                </span>
+                            </td>
+                            <td style="text-align: right;">
+                                ${isConfirmed ? `
+                                    <button onclick="cancelBooking(${b.id})" class="cancel-btn">Cancel</button>
+                                ` : `<span style="color: #64748b; font-size: 12px;">Cancelled</span>`}
+                            </td>
+                        </tr>
+                    `;
+                }).join("");
+            } catch (err) {
+                console.error("Ledger fetch error:", err);
+                const tbody = document.getElementById("bookingsTableBody");
+                if (tbody) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="empty-state" style="color: #fca5a5;">Failed to load booking data.</td></tr>`;
+                }
+            }
+        }
+
+        async function cancelBooking(bookingId) {
+            if (!confirm("Are you sure you want to cancel this reservation slot?")) {
+                return;
+            }
+
+            const token = localStorage.getItem("admin_token");
+            try {
+                const res = await fetch(`${API_BASE}/bookings/${bookingId}`, {
+                    method: "DELETE",
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+
+                if (res.ok) {
+                    await fetchBookings();
+                } else {
+                    const err = await res.json();
+                    alert(err.detail || "Failed to cancel booking.");
+                }
+            } catch (err) {
+                console.error("Error cancelling booking:", err);
+                alert("Network error while cancelling booking.");
+            }
+        }
+
+        async function downloadExcel() {
+            const token = localStorage.getItem("admin_token");
+            if (!token) {
+                showLoginModal();
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/export-excel`, {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+
+                if (!res.ok) {
+                    alert("Failed to download ledger report.");
+                    return;
+                }
+
+                const blob = await res.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = "college_hall_bookings_ledger.xlsx";
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+            } catch (err) {
+                console.error("Download error:", err);
+                alert("Could not export Excel file.");
+            }
+        }
+
+        function logout() {
             localStorage.removeItem("admin_token");
             showLoginModal();
-            return;
+            const tbody = document.getElementById("bookingsTableBody");
+            if (tbody) tbody.innerHTML = `<tr><td colspan="7" class="empty-state">Please log in to view reservations.</td></tr>`;
+            const countEl = document.getElementById("bookingCount");
+            if (countEl) countEl.innerText = "0 Records";
         }
-
-        if (!res.ok) {
-            throw new Error(`Server returned ${res.status}`);
-        }
-
-        const data = await res.json();
-        hideLoginModal();
-
-        const countEl = document.getElementById("bookingCount");
-        if (countEl) countEl.innerText = `${data.length} Records`;
-
-        const tbody = document.getElementById("bookingsTableBody");
-        if (!tbody) return;
-
-        if (data.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" class="empty-state">No venue reservations recorded yet.</td></tr>`;
-            return;
-        }
-
-        tbody.innerHTML = data.map(b => {
-            const isConfirmed = b.status === "CONFIRMED";
-            return `
-                <tr>
-                    <td><span class="venue-badge">${b.venue}</span></td>
-                    <td>
-                        <strong>${b.faculty_name}</strong><br>
-                        <span style="font-size: 11px; color: #94a3b8;">${b.department} | ${b.email}</span>
-                    </td>
-                    <td>${b.event_details}</td>
-                    <td>${formatTo12Hour ? formatTo12Hour(b.start_datetime) : b.start_datetime}</td>
-                    <td>${formatTo12Hour ? formatTo12Hour(b.end_datetime) : b.end_datetime}</td>
-                    <td>
-                        <span class="status-badge ${isConfirmed ? 'status-confirmed' : 'status-cancelled'}">
-                            ${b.status}
-                        </span>
-                    </td>
-                    <td style="text-align: right;">
-                        ${isConfirmed ? `
-                            <button onclick="cancelBooking(${b.id})" class="cancel-btn">Cancel</button>
-                        ` : `<span style="color: #64748b; font-size: 12px;">Cancelled</span>`}
-                    </td>
-                </tr>
-            `;
-        }).join("");
-    } catch (err) {
-        console.error("Ledger fetch error:", err);
-    }
-}
-
-function logout() {
-    localStorage.removeItem("admin_token");
-    showLoginModal();
-    // Clear table rows immediately on logout
-    const tbody = document.getElementById("bookingsTableBody");
-    if (tbody) tbody.innerHTML = `<tr><td colspan="7" class="empty-state">Please log in to view reservations.</td></tr>`;
-    document.getElementById("bookingCount").innerText = "0 Records";
-}
-</script>
+    </script>
 </body>
 </html>
