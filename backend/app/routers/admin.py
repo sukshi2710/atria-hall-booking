@@ -1,6 +1,6 @@
 import os
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from fastapi.responses import FileResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
@@ -11,6 +11,7 @@ from app.schemas import BookingOut, BookingCreate
 from app.auth import verify_password, create_access_token, get_current_admin
 from app.conflict_engine import check_hall_clash
 from app.excel_service import append_booking_to_excel, initialize_excel_ledger, EXCEL_FILE_PATH
+from app.email_service import send_cancellation_email
 
 router = APIRouter(prefix="/api/v1/admin", tags=["Admin"])
 
@@ -76,7 +77,8 @@ def update_booking(
 
 @router.delete("/bookings/{booking_id}")
 def cancel_booking(
-    booking_id: int, 
+    booking_id: int,
+    background_tasks: BackgroundTasks,
     admin: Admin = Depends(get_current_admin), 
     db: Session = Depends(get_db)
 ):
@@ -87,4 +89,17 @@ def cancel_booking(
     booking.status = "CANCELLED"
     db.commit()
     append_booking_to_excel(booking)
-    return {"message": "Booking successfully cancelled and slot freed"}
+
+    # Trigger cancellation notification asynchronously to faculty email
+    if booking.email:
+        background_tasks.add_task(
+            send_cancellation_email,
+            to_email=booking.email,
+            faculty_name=booking.faculty_name,
+            venue=booking.venue,
+            event_details=booking.event_details,
+            start_time=booking.start_datetime.strftime("%d %b %Y, %I:%M %p"),
+            end_time=booking.end_datetime.strftime("%d %b %Y, %I:%M %p")
+        )
+
+    return {"message": "Booking successfully cancelled, slot freed, and email notification sent"}
