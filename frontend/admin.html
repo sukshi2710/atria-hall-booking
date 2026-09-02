@@ -409,32 +409,31 @@
         <div class="navbar-actions">
             <img src="naac-logo.png" alt="NAAC A++ Accredited" class="naac-badge" title="NAAC A++ Accredited" onerror="this.style.display='none'">
             <a href="index.html" class="nav-btn">&larr; Public Portal</a>
-            <button id="logoutBtn" class="nav-btn hidden" style="background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.4);">Logout</button>
+            <button id="logoutBtn" class="nav-btn hidden" onclick="logout()" class="logout-btn" style="background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.4);">Logout</button>
         </div>
     </header>
 
     <!-- Admin Authentication Modal -->
-    <!-- Auth Overlay Modal (Shown if not logged in) -->
+   <!-- Admin Authentication Modal Overlay -->
 <div id="loginModal" style="display: none; position: fixed; inset: 0; background: rgba(10, 15, 29, 0.85); backdrop-filter: blur(12px); z-index: 9999; align-items: center; justify-content: center;">
-  <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); padding: 32px; border-radius: 16px; width: 100%; max-width: 400px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); text-align: center; color: white;">
-    <h2 style="margin-bottom: 8px; font-size: 22px;">Admin Authentication</h2>
-    <p style="color: #94a3b8; font-size: 13px; margin-bottom: 24px;">Enter credentials to access the reservation ledger.</p>
+  <div style="background: rgba(30, 41, 59, 0.85); border: 1px solid rgba(255, 255, 255, 0.15); padding: 32px; border-radius: 16px; width: 90%; max-width: 380px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); text-align: center; color: white;">
+    <h2 style="margin-bottom: 8px; font-size: 20px; font-weight: 700;">Admin Authentication</h2>
+    <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Enter institutional credentials to manage reservations.</p>
     
     <form id="adminLoginForm" onsubmit="handleLogin(event)">
-      <div style="margin-bottom: 16px; text-align: left;">
+      <div style="margin-bottom: 14px; text-align: left;">
         <label style="font-size: 12px; color: #cbd5e1; display: block; margin-bottom: 6px;">Username</label>
-        <input type="text" id="adminUser" required style="width: 100%; padding: 10px 14px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: white; outline: none;">
+        <input type="text" id="adminUser" required placeholder="admin" style="width: 100%; box-sizing: border-box; padding: 10px 14px; background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; outline: none;">
       </div>
-      <div style="margin-bottom: 24px; text-align: left;">
+      <div style="margin-bottom: 20px; text-align: left;">
         <label style="font-size: 12px; color: #cbd5e1; display: block; margin-bottom: 6px;">Password</label>
-        <input type="password" id="adminPass" required style="width: 100%; padding: 10px 14px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: white; outline: none;">
+        <input type="password" id="adminPass" required placeholder="••••••••" style="width: 100%; box-sizing: border-box; padding: 10px 14px; background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; outline: none;">
       </div>
       <p id="loginError" style="color: #f87171; font-size: 12px; display: none; margin-bottom: 12px;"></p>
-      <button type="submit" style="width: 100%; padding: 12px; background: #2563eb; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Sign In</button>
+      <button type="submit" id="loginBtn" style="width: 100%; padding: 11px; background: #2563eb; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Sign In</button>
     </form>
   </div>
 </div>
-    </div>
 
     <!-- Main Dashboard -->
     <main id="adminPanel" class="main-container hidden">
@@ -474,38 +473,50 @@
     </main>
 
     <script>
-        const API_BASE = "/api/v1/admin";
-        let token = localStorage.getItem("admin_token");
+const API_BASE = "/api/v1/admin";
 
-        const API_BASE = "/api/v1/admin";
-
-// 1. Check Authentication on Initial Load
-document.addEventListener("DOMContentLoaded", () => {
-    const token = localStorage.getItem("admin_token");
+function showLoginModal() {
     const modal = document.getElementById("loginModal");
-
-    if (!token) {
+    if (modal) {
         modal.style.display = "flex";
-    } else {
+    }
+}
+
+function hideLoginModal() {
+    const modal = document.getElementById("loginModal");
+    if (modal) {
         modal.style.display = "none";
-        fetchBookings();
+    }
+}
+
+// Check credentials upon opening page
+document.addEventListener("DOMContentLoaded", async () => {
+    const token = localStorage.getItem("admin_token");
+    if (!token) {
+        showLoginModal();
+    } else {
+        await fetchBookings();
     }
 });
 
-// 2. Handle Admin Login Submission
+// Login submission
 async function handleLogin(e) {
     e.preventDefault();
     const username = document.getElementById("adminUser").value.trim();
     const password = document.getElementById("adminPass").value.trim();
     const errEl = document.getElementById("loginError");
+    const btn = document.getElementById("loginBtn");
+
     errEl.style.display = "none";
+    btn.innerText = "Verifying...";
+    btn.disabled = true;
 
     const formData = new URLSearchParams();
     formData.append("username", username);
     formData.append("password", password);
 
     try {
-        const response = await fetch("/api/v1/admin/login", {
+        const response = await fetch(`${API_BASE}/login`, {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
             body: formData
@@ -517,103 +528,49 @@ async function handleLogin(e) {
 
         const data = await response.json();
         localStorage.setItem("admin_token", data.access_token);
-
-        document.getElementById("loginModal").style.display = "none";
-        fetchBookings();
+        hideLoginModal();
+        await fetchBookings();
     } catch (err) {
         errEl.innerText = err.message || "Login failed";
         errEl.style.display = "block";
+    } finally {
+        btn.innerText = "Sign In";
+        btn.disabled = false;
     }
 }
 
-// 3. Handle Admin Logout
-function logout() {
-    localStorage.removeItem("admin_token");
-    location.reload();
-}
+// Fetch bookings with automatic 401 unauthenticated catcher
+async function fetchBookings() {
+    const token = localStorage.getItem("admin_token");
+    if (!token) {
+        showLoginModal();
+        return;
+    }
 
-        // Format ISO timestamps into clean 12-hour AM/PM format
-        function formatTo12Hour(isoString) {
-            if (!isoString) return "-";
-            const date = new Date(isoString);
-            return date.toLocaleString('en-US', {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric',
-                hour: 'numeric',
-                minute: '2-digit',
-                hour12: true
-            });
-        }
-
-        if (token) {
-            showDashboard();
-        }
-
-        document.getElementById("adminLoginForm").addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const formData = new FormData();
-            formData.append("username", document.getElementById("adminUser").value.trim());
-            formData.append("password", document.getElementById("adminPass").value.trim());
-
-            try {
-                const res = await fetch(`${API_BASE}/login`, { method: "POST", body: formData });
-                if (res.ok) {
-                    const data = await res.json();
-                    localStorage.setItem("admin_token", data.access_token);
-                    token = data.access_token;
-                    showDashboard();
-                } else {
-                    alert("Invalid username or password");
-                }
-            } catch (err) {
-                alert("Server connection error during login.");
-            }
-        });
-
-        document.getElementById("logoutBtn").addEventListener("click", () => {
-            localStorage.removeItem("admin_token");
-            location.reload();
-        });
-
-        function showDashboard() {
-            document.getElementById("loginModal").classList.add("hidden");
-            document.getElementById("adminPanel").classList.remove("hidden");
-            document.getElementById("logoutBtn").classList.remove("hidden");
-            fetchBookings();
-        }
-
-        async function fetchBookings() {
     try {
-        const token = localStorage.getItem("admin_token");
-
-        // If no token exists, redirect to login immediately
-        if (!token) {
-            console.warn("No admin_token found in localStorage.");
-            return;
-        }
-
         const res = await fetch(`${API_BASE}/bookings`, {
-            headers: { 
-                "Authorization": `Bearer ${token}` 
-            }
+            headers: { "Authorization": `Bearer ${token}` }
         });
-        
-        if (res.status === 401) {
+
+        // If the server rejects the token, force show the login modal
+        if (res.status === 401 || res.status === 403) {
             localStorage.removeItem("admin_token");
-            location.reload();
+            showLoginModal();
             return;
         }
 
         if (!res.ok) {
-            throw new Error(`Server returned status: ${res.status}`);
+            throw new Error(`Server returned ${res.status}`);
         }
-        
-        const data = await res.json();
-        console.log("Fetched bookings:", data); // Check in browser console
 
-        document.getElementById("bookingCount").innerText = `${data.length} Records`;
+        const data = await res.json();
+        hideLoginModal();
+
+        const countEl = document.getElementById("bookingCount");
+        if (countEl) countEl.innerText = `${data.length} Records`;
+
         const tbody = document.getElementById("bookingsTableBody");
+        if (!tbody) return;
 
         if (data.length === 0) {
             tbody.innerHTML = `<tr><td colspan="7" class="empty-state">No venue reservations recorded yet.</td></tr>`;
@@ -630,8 +587,8 @@ function logout() {
                         <span style="font-size: 11px; color: #94a3b8;">${b.department} | ${b.email}</span>
                     </td>
                     <td>${b.event_details}</td>
-                    <td>${formatTo12Hour(b.start_datetime)}</td>
-                    <td>${formatTo12Hour(b.end_datetime)}</td>
+                    <td>${formatTo12Hour ? formatTo12Hour(b.start_datetime) : b.start_datetime}</td>
+                    <td>${formatTo12Hour ? formatTo12Hour(b.end_datetime) : b.end_datetime}</td>
                     <td>
                         <span class="status-badge ${isConfirmed ? 'status-confirmed' : 'status-cancelled'}">
                             ${b.status}
@@ -646,47 +603,14 @@ function logout() {
             `;
         }).join("");
     } catch (err) {
-        console.error("Fetch error:", err);
-        document.getElementById("bookingsTableBody").innerHTML = `
-            <tr><td colspan="7" class="empty-state" style="color: #fca5a5;">Failed to load booking data from server.</td></tr>
-        `;
+        console.error("Ledger fetch error:", err);
     }
 }
-        
-        async function cancelBooking(id) {
-            if (!confirm("Are you sure you want to cancel this reservation and free up the venue slot?")) return;
-            try {
-                const res = await fetch(`${API_BASE}/bookings/${id}`, {
-                    method: "DELETE",
-                    headers: { "Authorization": `Bearer ${token}` }
-                });
-                if (res.ok) fetchBookings();
-            } catch (err) {
-                alert("Failed to cancel reservation.");
-            }
-        }
 
-        document.getElementById("downloadExcelBtn").addEventListener("click", async () => {
-            try {
-                const res = await fetch(`${API_BASE}/export-excel`, {
-                    headers: { "Authorization": `Bearer ${token}` }
-                });
-                if (res.ok) {
-                    const blob = await res.blob();
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement("a");
-                    a.href = url;
-                    a.download = "college_hall_bookings_ledger.xlsx";
-                    document.body.appendChild(a);
-                    a.click();
-                    a.remove();
-                } else {
-                    alert("Could not generate Excel ledger.");
-                }
-            } catch (err) {
-                alert("Download failed.");
-            }
-        });
-    </script>
+function logout() {
+    localStorage.removeItem("admin_token");
+    showLoginModal();
+}
+</script>
 </body>
 </html>
