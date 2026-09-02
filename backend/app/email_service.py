@@ -2,7 +2,9 @@ import smtplib
 from email.message import EmailMessage
 from app.config import settings
 
+
 def send_email_smtp(recipient_email: str, subject: str, html_body: str):
+    """Core email delivery handler supporting TLS (587) and SSL (465)."""
     if not settings.SMTP_USER or not settings.SMTP_PASSWORD:
         print(f"[MAIL MOCK] To: {recipient_email} | Subject: {subject}")
         return
@@ -15,15 +17,17 @@ def send_email_smtp(recipient_email: str, subject: str, html_body: str):
         msg.set_content("Please enable HTML in your email client to view this message.")
         msg.add_alternative(html_body, subtype="html")
 
-        if int(settings.SMTP_PORT) == 587:
-            with smtplib.SMTP(settings.SMTP_HOST, int(settings.SMTP_PORT)) as server:
+        port = int(settings.SMTP_PORT)
+
+        if port == 587:
+            with smtplib.SMTP(settings.SMTP_HOST, port) as server:
                 server.ehlo()
                 server.starttls()
                 server.ehlo()
                 server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
                 server.send_message(msg)
         else:
-            with smtplib.SMTP_SSL(settings.SMTP_HOST, int(settings.SMTP_PORT)) as server:
+            with smtplib.SMTP_SSL(settings.SMTP_HOST, port) as server:
                 server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
                 server.send_message(msg)
 
@@ -31,10 +35,11 @@ def send_email_smtp(recipient_email: str, subject: str, html_body: str):
     except Exception as e:
         print(f"[MAIL ERROR] Failed sending to {recipient_email}: {e}")
 
+
 def send_success_email(booking):
-    # Formats to: 04-Sep-2026, 02:00 PM
-    formatted_start = booking.start_datetime.strftime('%d-%b-%Y, %I:%M %p')
-    formatted_end = booking.end_datetime.strftime('%d-%b-%Y, %I:%M %p')
+    """Sends reservation confirmation notice with booking summary."""
+    formatted_start = booking.start_datetime.strftime("%d-%b-%Y, %I:%M %p")
+    formatted_end = booking.end_datetime.strftime("%d-%b-%Y, %I:%M %p")
 
     subject = f"Booking Confirmed: {booking.venue} ({booking.booking_reference[:8]})"
     html = f"""
@@ -55,12 +60,13 @@ def send_success_email(booking):
     """
     send_email_smtp(booking.email, subject, html)
 
+
 def send_clash_email(faculty_name: str, recipient_email: str, venue: str, start_dt, end_dt, clashing_event):
-    # Format times nicely for the email body
-    req_start = start_dt.strftime('%d-%b-%Y, %I:%M %p')
-    req_end = end_dt.strftime('%d-%b-%Y, %I:%M %p')
-    clash_start = clashing_event.start_datetime.strftime('%d-%b-%Y, %I:%M %p')
-    clash_end = clashing_event.end_datetime.strftime('%I:%M %p')
+    """Sends rejection notification detailing time slot overlap."""
+    req_start = start_dt.strftime("%d-%b-%Y, %I:%M %p")
+    req_end = end_dt.strftime("%d-%b-%Y, %I:%M %p")
+    clash_start = clashing_event.start_datetime.strftime("%d-%b-%Y, %I:%M %p")
+    clash_end = clashing_event.end_datetime.strftime("%I:%M %p")
 
     subject = f"Booking Request Rejected (Slot Clash): {venue}"
     html = f"""
@@ -80,3 +86,31 @@ def send_clash_email(faculty_name: str, recipient_email: str, venue: str, start_
     </div>
     """
     send_email_smtp(recipient_email, subject, html)
+
+
+def send_cancellation_email(to_email: str, faculty_name: str, venue: str, event_details: str, start_time: str, end_time: str):
+    """Sends a formal cancellation notification when an administrator revokes a reservation."""
+    subject = f"Venue Reservation Cancelled: {venue}"
+    
+    html = f"""
+    <div style="font-family: Arial, sans-serif; padding: 20px; color: #2d3748; max-width: 600px; border: 1px solid #fed7d7; border-radius: 8px;">
+        <h2 style="color: #e53e3e; margin-top: 0;">Reservation Cancelled</h2>
+        <p>Dear <strong>{faculty_name}</strong>,</p>
+        <p>Please be advised that your reservation request has been <strong style="color: #e53e3e;">CANCELLED</strong> by the Hall In-Charge / Institutional Admin.</p>
+        
+        <div style="background: #fff5f5; border-left: 4px solid #e53e3e; padding: 12px; margin: 15px 0;">
+            <p style="margin: 4px 0; font-size: 13px;"><strong>Venue:</strong> {venue}</p>
+            <p style="margin: 4px 0; font-size: 13px;"><strong>Event Purpose:</strong> {event_details}</p>
+            <p style="margin: 4px 0; font-size: 13px;"><strong>Start Schedule:</strong> {start_time}</p>
+            <p style="margin: 4px 0; font-size: 13px;"><strong>End Schedule:</strong> {end_time}</p>
+            <p style="margin: 4px 0; font-size: 13px;"><strong>Status:</strong> <span style="color: #e53e3e; font-weight: bold;">CANCELLED</span></p>
+        </div>
+        
+        <p style="font-size: 13px; color: #718096; line-height: 1.5;">
+            If this cancellation conflicts with your department's schedule or you believe this occurred in error, please contact the administrative hall in-charge directly.
+        </p>
+        <hr style="border: 0; border-top: 1px solid #edf2f7; margin: 16px 0;">
+        <p style="font-size: 12px; color: #a0aec0; margin-bottom: 0;">Campus Venue Management System • Atria Institute of Technology</p>
+    </div>
+    """
+    send_email_smtp(to_email, subject, html)
