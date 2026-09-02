@@ -3,10 +3,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-# Get DATABASE_URL from environment variable
+# Uses Neon PostgreSQL if present, otherwise falls back to local SQLite
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./hall_booking.db")
 
-# Handle standard SQLAlchemy URL scheme compatibility
+# SQLAlchemy requires postgresql:// instead of postgres://
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
