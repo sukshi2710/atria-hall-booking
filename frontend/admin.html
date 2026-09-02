@@ -526,58 +526,75 @@
         }
 
         async function fetchBookings() {
-            try {
-                const res = await fetch(`${API_BASE}/bookings`, {
-                    headers: { "Authorization": `Bearer ${token}` }
-                });
-                
-                if (res.status === 401) {
-                    localStorage.removeItem("admin_token");
-                    location.reload();
-                    return;
-                }
-                
-                const data = await res.json();
-                document.getElementById("bookingCount").innerText = `${data.length} Records`;
-                const tbody = document.getElementById("bookingsTableBody");
+    try {
+        const token = localStorage.getItem("admin_token");
 
-                if (data.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="7" class="empty-state">No venue reservations recorded yet.</td></tr>`;
-                    return;
-                }
-
-                tbody.innerHTML = data.map(b => {
-                    const isConfirmed = b.status === "CONFIRMED";
-                    return `
-                        <tr>
-                            <td><span class="venue-badge">${b.venue}</span></td>
-                            <td>
-                                <strong>${b.faculty_name}</strong><br>
-                                <span style="font-size: 11px; color: #94a3b8;">${b.department} | ${b.email}</span>
-                            </td>
-                            <td>${b.event_details}</td>
-                            <td>${formatTo12Hour(b.start_datetime)}</td>
-                            <td>${formatTo12Hour(b.end_datetime)}</td>
-                            <td>
-                                <span class="status-badge ${isConfirmed ? 'status-confirmed' : 'status-cancelled'}">
-                                    ${b.status}
-                                </span>
-                            </td>
-                            <td style="text-align: right;">
-                                ${isConfirmed ? `
-                                    <button onclick="cancelBooking(${b.id})" class="cancel-btn">Cancel</button>
-                                ` : `<span style="color: #64748b; font-size: 12px;">Cancelled</span>`}
-                            </td>
-                        </tr>
-                    `;
-                }).join("");
-            } catch (err) {
-                document.getElementById("bookingsTableBody").innerHTML = `
-                    <tr><td colspan="7" class="empty-state" style="color: #fca5a5;">Failed to load booking data from server.</td></tr>
-                `;
-            }
+        // If no token exists, redirect to login immediately
+        if (!token) {
+            console.warn("No admin_token found in localStorage.");
+            return;
         }
 
+        const res = await fetch(`${API_BASE}/bookings`, {
+            headers: { 
+                "Authorization": `Bearer ${token}` 
+            }
+        });
+        
+        if (res.status === 401) {
+            localStorage.removeItem("admin_token");
+            location.reload();
+            return;
+        }
+
+        if (!res.ok) {
+            throw new Error(`Server returned status: ${res.status}`);
+        }
+        
+        const data = await res.json();
+        console.log("Fetched bookings:", data); // Check in browser console
+
+        document.getElementById("bookingCount").innerText = `${data.length} Records`;
+        const tbody = document.getElementById("bookingsTableBody");
+
+        if (data.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" class="empty-state">No venue reservations recorded yet.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = data.map(b => {
+            const isConfirmed = b.status === "CONFIRMED";
+            return `
+                <tr>
+                    <td><span class="venue-badge">${b.venue}</span></td>
+                    <td>
+                        <strong>${b.faculty_name}</strong><br>
+                        <span style="font-size: 11px; color: #94a3b8;">${b.department} | ${b.email}</span>
+                    </td>
+                    <td>${b.event_details}</td>
+                    <td>${formatTo12Hour(b.start_datetime)}</td>
+                    <td>${formatTo12Hour(b.end_datetime)}</td>
+                    <td>
+                        <span class="status-badge ${isConfirmed ? 'status-confirmed' : 'status-cancelled'}">
+                            ${b.status}
+                        </span>
+                    </td>
+                    <td style="text-align: right;">
+                        ${isConfirmed ? `
+                            <button onclick="cancelBooking(${b.id})" class="cancel-btn">Cancel</button>
+                        ` : `<span style="color: #64748b; font-size: 12px;">Cancelled</span>`}
+                    </td>
+                </tr>
+            `;
+        }).join("");
+    } catch (err) {
+        console.error("Fetch error:", err);
+        document.getElementById("bookingsTableBody").innerHTML = `
+            <tr><td colspan="7" class="empty-state" style="color: #fca5a5;">Failed to load booking data from server.</td></tr>
+        `;
+    }
+}
+        
         async function cancelBooking(id) {
             if (!confirm("Are you sure you want to cancel this reservation and free up the venue slot?")) return;
             try {
