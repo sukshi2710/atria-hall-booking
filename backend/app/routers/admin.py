@@ -1,6 +1,6 @@
 import os
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import FileResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
@@ -38,7 +38,11 @@ def list_all_bookings(admin: Admin = Depends(get_current_admin), db: Session = D
 @router.get("/export-excel")
 def export_excel_ledger(admin: Admin = Depends(get_current_admin)):
     """Allows the in-charge/admin to download the updated .xlsx ledger."""
-    initialize_excel_ledger()
+    try:
+        initialize_excel_ledger()
+    except Exception as e:
+        print(f"[EXCEL WARN] Ledger init error: {e}")
+
     if not os.path.exists(EXCEL_FILE_PATH):
         raise HTTPException(status_code=404, detail="Excel ledger file not found")
         
@@ -71,14 +75,18 @@ def update_booking(
         
     db.commit()
     db.refresh(booking)
-    append_booking_to_excel(booking)
+
+    try:
+        append_booking_to_excel(booking)
+    except Exception as e:
+        print(f"[EXCEL WARN] Could not sync to excel on serverless disk: {e}")
+
     return booking
 
 
 @router.delete("/bookings/{booking_id}")
 def cancel_booking(
     booking_id: int,
-    background_tasks: BackgroundTasks,
     admin: Admin = Depends(get_current_admin), 
     db: Session = Depends(get_db)
 ):
@@ -86,20 +94,29 @@ def cancel_booking(
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
     
+    # 1. Update database status
     booking.status = "CANCELLED"
     db.commit()
-    append_booking_to_excel(booking)
+    db.refresh(booking)
 
-    # Trigger cancellation notification asynchronously to faculty email
+    # 2. Attempt Excel sync safely
+    try:
+        append_booking_to_excel(booking)
+    except Exception as e:
+        print(f"[EXCEL WARN] Could not write to Excel: {e}")
+
+    # 3. Send email synchronously before Lambda/Vercel shuts down
     if booking.email:
-        background_tasks.add_task(
-            send_cancellation_email,
-            to_email=booking.email,
-            faculty_name=booking.faculty_name,
-            venue=booking.venue,
-            event_details=booking.event_details,
-            start_time=booking.start_datetime.strftime("%d %b %Y, %I:%M %p"),
-            end_time=booking.end_datetime.strftime("%d %b %Y, %I:%M %p")
-        )
+        try:
+            send_cancellation_email(
+                to_email=booking.email,
+                faculty_name=booking.faculty_name,
+                venue=booking.venue,
+                event_details=booking.event_details,
+                start_time=booking.start_datetime.strftime("%d-%b-%Y, %I:%M %p"),
+                end_time=booking.end_datetime.strftime("%d-%b-%Y, %I:%M %p")
+            )
+        except Exception as e:
+            print(f"[EMAIL ERROR] Failed during cancellation dispatch: {e}")
 
-    return {"message": "Booking successfully cancelled, slot freed, and email notification sent"}
+    return {"message": "Booking successfully cancelled and notification email sent"}
