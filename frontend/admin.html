@@ -414,23 +414,26 @@
     </header>
 
     <!-- Admin Authentication Modal -->
-    <div id="loginModal">
-        <div class="login-card">
-            <h2>Admin Sign In</h2>
-            <p>Enter credentials to access the venue management console.</p>
-            
-            <form id="adminLoginForm">
-                <div class="input-group">
-                    <label for="adminUser">Username</label>
-                    <input type="text" id="adminUser" placeholder="admin" required autocomplete="username">
-                </div>
-                <div class="input-group">
-                    <label for="adminPass">Password</label>
-                    <input type="password" id="adminPass" placeholder="••••••••" required autocomplete="current-password">
-                </div>
-                <button type="submit" class="btn-submit">Sign In to Dashboard</button>
-            </form>
-        </div>
+    <!-- Auth Overlay Modal (Shown if not logged in) -->
+<div id="loginModal" style="display: none; position: fixed; inset: 0; background: rgba(10, 15, 29, 0.85); backdrop-filter: blur(12px); z-index: 9999; align-items: center; justify-content: center;">
+  <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); padding: 32px; border-radius: 16px; width: 100%; max-width: 400px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); text-align: center; color: white;">
+    <h2 style="margin-bottom: 8px; font-size: 22px;">Admin Authentication</h2>
+    <p style="color: #94a3b8; font-size: 13px; margin-bottom: 24px;">Enter credentials to access the reservation ledger.</p>
+    
+    <form id="adminLoginForm" onsubmit="handleLogin(event)">
+      <div style="margin-bottom: 16px; text-align: left;">
+        <label style="font-size: 12px; color: #cbd5e1; display: block; margin-bottom: 6px;">Username</label>
+        <input type="text" id="adminUser" required style="width: 100%; padding: 10px 14px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: white; outline: none;">
+      </div>
+      <div style="margin-bottom: 24px; text-align: left;">
+        <label style="font-size: 12px; color: #cbd5e1; display: block; margin-bottom: 6px;">Password</label>
+        <input type="password" id="adminPass" required style="width: 100%; padding: 10px 14px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: white; outline: none;">
+      </div>
+      <p id="loginError" style="color: #f87171; font-size: 12px; display: none; margin-bottom: 12px;"></p>
+      <button type="submit" style="width: 100%; padding: 12px; background: #2563eb; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Sign In</button>
+    </form>
+  </div>
+</div>
     </div>
 
     <!-- Main Dashboard -->
@@ -473,6 +476,61 @@
     <script>
         const API_BASE = "/api/v1/admin";
         let token = localStorage.getItem("admin_token");
+
+        const API_BASE = "/api/v1/admin";
+
+// 1. Check Authentication on Initial Load
+document.addEventListener("DOMContentLoaded", () => {
+    const token = localStorage.getItem("admin_token");
+    const modal = document.getElementById("loginModal");
+
+    if (!token) {
+        modal.style.display = "flex";
+    } else {
+        modal.style.display = "none";
+        fetchBookings();
+    }
+});
+
+// 2. Handle Admin Login Submission
+async function handleLogin(e) {
+    e.preventDefault();
+    const username = document.getElementById("adminUser").value.trim();
+    const password = document.getElementById("adminPass").value.trim();
+    const errEl = document.getElementById("loginError");
+    errEl.style.display = "none";
+
+    const formData = new URLSearchParams();
+    formData.append("username", username);
+    formData.append("password", password);
+
+    try {
+        const response = await fetch("/api/v1/admin/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: formData
+        });
+
+        if (!response.ok) {
+            throw new Error("Invalid username or password");
+        }
+
+        const data = await response.json();
+        localStorage.setItem("admin_token", data.access_token);
+
+        document.getElementById("loginModal").style.display = "none";
+        fetchBookings();
+    } catch (err) {
+        errEl.innerText = err.message || "Login failed";
+        errEl.style.display = "block";
+    }
+}
+
+// 3. Handle Admin Logout
+function logout() {
+    localStorage.removeItem("admin_token");
+    location.reload();
+}
 
         // Format ISO timestamps into clean 12-hour AM/PM format
         function formatTo12Hour(isoString) {
