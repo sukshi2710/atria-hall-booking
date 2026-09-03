@@ -813,22 +813,20 @@
 
 
 
-   /* =========================================================
-   FLATPICKR WEEKDAY HEADER - FIXED
+  
+/* =========================================================
+   FLATPICKR WEEKDAY HEADER - FINAL FIX
 ========================================================= */
 
 .flatpickr-weekdays {
     width: 100% !important;
 
-    display: grid !important;
-    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+    height: 28px !important;
 
+    display: flex !important;
     align-items: center !important;
 
-    height: 32px !important;
-
     margin: 0 0 6px 0 !important;
-
     padding: 0 !important;
 
     background: transparent !important;
@@ -838,10 +836,10 @@
 .flatpickr-weekdaycontainer {
     width: 100% !important;
 
-    display: grid !important;
-    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
-
+    display: flex !important;
     align-items: center !important;
+
+    flex: 1 1 100% !important;
 
     margin: 0 !important;
     padding: 0 !important;
@@ -849,13 +847,12 @@
 
 
 span.flatpickr-weekday {
-    width: 100% !important;
-    max-width: none !important;
+    width: 14.285714% !important;
+    max-width: 14.285714% !important;
 
-    display: flex !important;
+    flex: 1 1 14.285714% !important;
 
-    align-items: center !important;
-    justify-content: center !important;
+    display: block !important;
 
     margin: 0 !important;
     padding: 0 !important;
@@ -863,20 +860,17 @@ span.flatpickr-weekday {
     color: #94a3b8 !important;
 
     font-size: 10px !important;
-
     font-weight: 700 !important;
 
-    line-height: 1 !important;
+    line-height: 28px !important;
 
     text-align: center !important;
-
-    text-transform: uppercase !important;
 
     letter-spacing: 0 !important;
 
     white-space: nowrap !important;
 
-    overflow: hidden !important;
+    overflow: visible !important;
 }
 
 
