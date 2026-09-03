@@ -59,7 +59,7 @@ def create_initial_admin():
         if not db.query(Admin).first():
             default_admin = Admin(
                 username="admin",
-                password_hash=get_password_hash("admin123"),
+                password_hash=get_password_hash("Atria@2026"),
                 email="admin@college.edu"
             )
             db.add(default_admin)
