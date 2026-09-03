@@ -3,7 +3,12 @@ from datetime import datetime
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 
-EXCEL_FILE_PATH = "college_hall_bookings_ledger.xlsx"
+# Use /tmp on Vercel/serverless environments to avoid read-only filesystem errors
+if os.getenv("VERCEL"):
+    EXCEL_FILE_PATH = "/tmp/college_hall_bookings_ledger.xlsx"
+else:
+    EXCEL_FILE_PATH = "college_hall_bookings_ledger.xlsx"
+
 
 def initialize_excel_ledger():
     """Creates the formatted Excel ledger with styled headers if not already present."""
@@ -14,8 +19,8 @@ def initialize_excel_ledger():
     ws = wb.active
     ws.title = "Hall Bookings Ledger"
 
+    # Reference ID removed from headers
     headers = [
-        "Reference ID",
         "Faculty Name",
         "Official Mail ID",
         "Venue",
@@ -46,18 +51,17 @@ def initialize_excel_ledger():
         cell.alignment = Alignment(horizontal="center", vertical="center")
         cell.border = thin_border
 
-    # Adjust initial column widths
+    # Adjust column widths (shifted after removing Reference ID)
     column_widths = {
-        "A": 38, # Reference ID
-        "B": 22, # Faculty Name
-        "C": 28, # Email
-        "D": 18, # Venue
-        "E": 16, # Department
-        "F": 35, # Event Details
-        "G": 22, # Start Time
-        "H": 22, # End Time
-        "I": 15, # Status
-        "J": 22  # Booked At
+        "A": 22,  # Faculty Name
+        "B": 28,  # Email
+        "C": 18,  # Venue
+        "D": 16,  # Department
+        "E": 35,  # Event Details
+        "F": 22,  # Start Time
+        "G": 22,  # End Time
+        "H": 15,  # Status
+        "I": 22   # Booked At
     }
     for col, width in column_widths.items():
         ws.column_dimensions[col].width = width
@@ -66,14 +70,14 @@ def initialize_excel_ledger():
 
 
 def append_booking_to_excel(booking):
-    """Appends a new or updated booking record directly to the .xlsx file."""
+    """Appends a new or updated booking record directly to the .xlsx file without the Reference ID."""
     initialize_excel_ledger()
 
     wb = load_workbook(EXCEL_FILE_PATH)
     ws = wb.active
 
+    # booking_reference is recorded in the database, but omitted here from export
     row_data = [
-        booking.booking_reference,
         booking.faculty_name,
         booking.email,
         booking.venue,
@@ -87,9 +91,9 @@ def append_booking_to_excel(booking):
 
     ws.append(row_data)
 
-    # Optional status-based text formatting for the status cell
+    # Status column is now column 8 (Column H)
     last_row = ws.max_row
-    status_cell = ws.cell(row=last_row, column=9)
+    status_cell = ws.cell(row=last_row, column=8)
     if booking.status == "CONFIRMED":
         status_cell.font = Font(color="22543D", bold=True)
     elif booking.status == "CANCELLED":
