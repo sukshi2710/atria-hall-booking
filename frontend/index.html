@@ -812,30 +812,72 @@
     }
 
 
-    /* =========================================================
-       FLATPICKR WEEKDAYS
-    ========================================================= */
 
-    .flatpickr-weekdays {
+   /* =========================================================
+   FLATPICKR WEEKDAY HEADER - FIXED
+========================================================= */
 
-        height: 28px !important;
+.flatpickr-weekdays {
+    width: 100% !important;
 
-        margin-bottom: 4px !important;
-    }
+    display: grid !important;
+    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+
+    align-items: center !important;
+
+    height: 32px !important;
+
+    margin: 0 0 6px 0 !important;
+
+    padding: 0 !important;
+
+    background: transparent !important;
+}
 
 
-    span.flatpickr-weekday {
+.flatpickr-weekdaycontainer {
+    width: 100% !important;
 
-        color: #94a3b8 !important;
+    display: grid !important;
+    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
 
-        font-size: 10px !important;
+    align-items: center !important;
 
-        font-weight: 700 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
 
-        text-transform: uppercase !important;
 
-        letter-spacing: 0.4px !important;
-    }
+span.flatpickr-weekday {
+    width: 100% !important;
+    max-width: none !important;
+
+    display: flex !important;
+
+    align-items: center !important;
+    justify-content: center !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    color: #94a3b8 !important;
+
+    font-size: 10px !important;
+
+    font-weight: 700 !important;
+
+    line-height: 1 !important;
+
+    text-align: center !important;
+
+    text-transform: uppercase !important;
+
+    letter-spacing: 0 !important;
+
+    white-space: nowrap !important;
+
+    overflow: hidden !important;
+}
 
 
     /* =========================================================
@@ -863,6 +905,18 @@
             !important;
 
         gap: 4px 2px !important;
+
+        .flatpickr-days {
+    width: 100% !important;
+}
+
+.flatpickr-innerContainer {
+    width: 100% !important;
+}
+
+.calendarContainer {
+    width: 100% !important;
+}
     }
 
 
