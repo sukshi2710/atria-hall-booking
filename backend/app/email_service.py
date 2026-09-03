@@ -37,19 +37,18 @@ def send_email_smtp(recipient_email: str, subject: str, html_body: str):
 
 
 def send_success_email(booking):
-    """Sends reservation confirmation notice with booking summary."""
-    formatted_start = booking.start_datetime.strftime("%d-%b-%Y, %I:%M %p")
-    formatted_end = booking.end_datetime.strftime("%d-%b-%Y, %I:%M %p")
+    # Formats to: 04-Sep-2026, 02:00 PM
+    formatted_start = booking.start_datetime.strftime('%d-%b-%Y, %I:%M %p')
+    formatted_end = booking.end_datetime.strftime('%d-%b-%Y, %I:%M %p')
 
-    subject = f"Booking Confirmed: {booking.venue} ({booking.booking_reference[:8]})"
+    subject = f"Booking Confirmed: {booking.venue}"
     html = f"""
     <div style="font-family: Arial, sans-serif; padding: 20px; color: #2d3748; max-width: 600px; border: 1px solid #e2e8f0; border-radius: 8px;">
         <h2 style="color: #2b6cb0; margin-top: 0;">Venue Reservation Confirmed</h2>
         <p>Dear <strong>{booking.faculty_name}</strong>,</p>
         <p>Your booking request has been approved and logged to the ledger.</p>
         <table style="border-collapse: collapse; width: 100%; margin: 15px 0;">
-            <tr><td style="padding: 8px; border: 1px solid #edf2f7; background: #f7fafc; width: 35%;"><strong>Reference ID:</strong></td><td style="padding: 8px; border: 1px solid #edf2f7;">{booking.booking_reference}</td></tr>
-            <tr><td style="padding: 8px; border: 1px solid #edf2f7; background: #f7fafc;"><strong>Venue:</strong></td><td style="padding: 8px; border: 1px solid #edf2f7;">{booking.venue}</td></tr>
+            <tr><td style="padding: 8px; border: 1px solid #edf2f7; background: #f7fafc; width: 35%;"><strong>Venue:</strong></td><td style="padding: 8px; border: 1px solid #edf2f7;">{booking.venue}</td></tr>
             <tr><td style="padding: 8px; border: 1px solid #edf2f7; background: #f7fafc;"><strong>Department:</strong></td><td style="padding: 8px; border: 1px solid #edf2f7;">{booking.department}</td></tr>
             <tr><td style="padding: 8px; border: 1px solid #edf2f7; background: #f7fafc;"><strong>Event Purpose:</strong></td><td style="padding: 8px; border: 1px solid #edf2f7;">{booking.event_details}</td></tr>
             <tr><td style="padding: 8px; border: 1px solid #edf2f7; background: #f7fafc;"><strong>Start Time:</strong></td><td style="padding: 8px; border: 1px solid #edf2f7;">{formatted_start}</td></tr>
