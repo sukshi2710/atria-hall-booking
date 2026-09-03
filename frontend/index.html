@@ -923,7 +923,7 @@
                 <div class="form-grid">
                     <div class="form-group">
                         <label for="faculty_name">Faculty Name</label>
-                        <input type="text" id="faculty_name" placeholder="Prof. Alan Turing" required>
+                        <input type="text" id="faculty_name" required>
                     </div>
                     <div class="form-group">
                         <label for="email">Official Mail ID</label>
@@ -960,9 +960,9 @@
                 </div>
 
                 <div class="form-group-full">
-                    <label for="event_details">Event Details / Purpose</label>
+                    <label for="event_details">Event Details</label>
                     <textarea id="event_details"
-                        placeholder="Guest lecture topic, speaker name, or placement drive details..."
+                        placeholder="Guest lecture, placement drive ..."
                         required></textarea>
                 </div>
 
@@ -1075,7 +1075,7 @@
                     throw new Error(errorMsg);
                 }
 
-                showAlert(`Booking Confirmed! Reference ID: ${data.booking_reference}. A confirmation email has been dispatched.`);
+                showAlert("Booking Confirmed! A confirmation email has been dispatched. If you cannot find it in your inbox, please check your spam/junk folder.");
                 form.reset();
             } catch (err) {
                 showAlert(err.message || "Network error: Unable to connect to server.", true);
