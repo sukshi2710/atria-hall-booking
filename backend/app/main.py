@@ -53,17 +53,32 @@ if os.path.exists(FRONTEND_DIR):
         return FileResponse(os.path.join(FRONTEND_DIR, "index.html"))
 
 @app.on_event("startup")
-def create_initial_admin():
+def create_or_update_admin():
     db = SessionLocal()
     try:
-        if not db.query(Admin).first():
-            default_admin = Admin(
-                username="admin",
-                password_hash=get_password_hash("admin123"),
+        target_username = "admin"
+        # REPLACE THIS with your desired new plain password:
+        target_password = "Atria@2026"
+
+        admin_record = db.query(Admin).filter(Admin.username == target_username).first()
+
+        if not admin_record:
+            # Create the record if it does not exist yet
+            new_admin = Admin(
+                username=target_username,
+                password_hash=get_password_hash(target_password),
                 email="admin@college.edu"
             )
-            db.add(default_admin)
+            db.add(new_admin)
             db.commit()
+            print("[AUTH] Default admin created successfully.")
+        else:
+            # Overwrite password hash with the new password
+            admin_record.password_hash = get_password_hash(target_password)
+            db.commit()
+            print("[AUTH] Admin password synchronized successfully.")
+    except Exception as e:
+        print(f"[AUTH ERROR] Failed to configure admin credentials: {e}")
     finally:
         db.close()
 
