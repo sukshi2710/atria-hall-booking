@@ -52,7 +52,7 @@ def export_excel_ledger(
     ws.title = "Reservations Ledger"
 
     headers = [
-        "Booking ID", "Reference", "Venue", "Faculty Name", 
+        "Booking ID", "Venue", "Faculty Name", 
         "Department", "Email", "Event Purpose", 
         "Start Time", "End Time", "Status", "Created At"
     ]
@@ -76,7 +76,6 @@ def export_excel_ledger(
     for b in bookings:
         ws.append([
             b.id,
-            getattr(b, "booking_reference", f"REF-{b.id}"),
             b.venue,
             b.faculty_name,
             b.department,
